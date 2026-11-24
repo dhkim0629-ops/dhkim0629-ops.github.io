@@ -180,3 +180,47 @@ footer .ex{color:#c92a2a}
  .topbar h1{font-size:17px}
 }
 @media print{nav.tabs,.tbtns,.tbtn,.prof .acts{display:none!important}.todo .tdet{display:block}}
+
+/* ===== 인쇄·PDF ===== */
+.prov{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.prmd{background:#fff;border-radius:16px;max-width:560px;width:100%;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.prmd h3{margin:0 0 14px;color:var(--navy);font-size:19px}
+.prq{margin-bottom:14px}.prq>b{display:block;font-size:14px;color:var(--navy2);margin-bottom:6px}
+.prmd .seg{display:flex;flex-wrap:wrap;gap:8px}
+.prmd .seg button{flex:1;min-width:150px;border:2px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:15px;font-weight:700;cursor:pointer;text-align:left;color:var(--ink)}
+.prmd .seg button small{display:block;font-weight:400;font-size:12.5px;color:var(--sub);margin-top:2px}
+.prmd .seg button.on{border-color:var(--navy);background:#eef3fb}
+.prnote{font-size:13.5px;color:var(--sub);background:#f8f9fa;border-radius:8px;padding:9px 12px;margin:4px 0 14px}
+.pract{display:flex;gap:8px;justify-content:flex-end}
+#printroot{display:none}
+@media print{
+ @page{size:A4;margin:12mm 11mm}
+ body.printing{background:#fff!important}
+ body.printing>*:not(#printroot){display:none!important}
+ body.printing #printroot{display:block;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:#1d2433;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #printroot .pcov{display:flex;gap:14px;align-items:center;border-bottom:2.5px solid #1F3864;padding-bottom:8px;margin-bottom:10px}
+ #printroot .pcov img{height:30px}
+ #printroot .pbr{font-size:8pt;letter-spacing:.12em;color:#5b6577}
+ #printroot h1{font-size:16pt;margin:1px 0;color:#1F3864}
+ #printroot .pmt{font-size:8.5pt;color:#5b6577}
+ #printroot .ptb{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt}
+ #printroot .ptb thead{display:table-header-group}
+ #printroot .ptb th{background:#1F3864;color:#fff;padding:5px 4px;border:1px solid #1F3864}
+ #printroot .ptb td{border:1px solid #d5dbe5;padding:5px 5px;vertical-align:top;line-height:1.45;white-space:pre-line}
+ #printroot .ptb tr{break-inside:avoid}
+ #printroot .c{text-align:center}
+ #printroot .pst{display:inline-block;font-size:7.5pt;color:#fff;border-radius:3px;padding:0 4px;margin-top:2px}
+ #printroot .pcd{font-size:7.5pt;color:#0b7285}#printroot .prl{font-size:7.5pt;color:#e8590c}
+ #printroot .pdc{border:1px solid #d5dbe5;border-left:4px solid #1971c2;border-radius:5px;padding:8px 10px;margin-bottom:8px;break-inside:avoid}
+ #printroot .plw{font-size:8.5pt;font-weight:700;color:#2c4a7c;display:flex;gap:8px}
+ #printroot .pmk{margin-left:auto;color:#1d2433}
+ #printroot .psm{font-size:11pt;font-weight:700;margin:2px 0;white-space:pre-line}
+ #printroot .pac{font-size:9pt;color:#2b5d34;background:#ebfbee;border-radius:4px;padding:3px 6px;display:inline-block}
+ #printroot .par{font-size:8pt;color:#5b6577;white-space:pre-line;margin:5px 0}
+ #printroot .pg2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px}
+ #printroot .pbx{border-radius:5px;padding:6px 8px;font-size:8.8pt;white-space:pre-line;line-height:1.5}
+ #printroot .pbx h5{margin:0 0 2px;font-size:8pt}
+ #printroot .pbef{background:#f1f3f5}#printroot .paft{background:#e7f5ff;border:1px solid #a5d8ff}
+ #printroot .ptip{background:#fff4e6;border:1px solid #ffd8a8}#printroot .pfrm{border:1px solid #d5dbe5}
+ #printroot .pft{margin-top:10px;font-size:7.5pt;color:#5b6577;border-top:1px solid #d5dbe5;padding-top:5px}
+}

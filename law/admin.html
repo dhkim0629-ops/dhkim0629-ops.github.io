@@ -60,6 +60,7 @@
   <img class="lg" src="logo.png" alt="노무그룹지노">
   <h1>개정법 안내 관리 <span style="font-weight:500;font-size:14px;opacity:.8">· TEAM JINO</span></h1>
   <span class="who" id="who"></span>
+  <button class="tbtn" id="btnPrint">🖨 인쇄·PDF</button>
   <a class="tbtn" href="./" target="_blank" style="text-decoration:none">회원사 화면 ↗</a>
   <button class="tbtn" id="btnLock">잠그기</button>
  </div></header>
@@ -112,6 +113,7 @@ $('#lform').onsubmit=async function(ev){
 };
 function lock(msg){TOKEN='';ME=null;AKEY=null;ADDR=[];$('#app').hidden=true;$('#login').hidden=false;closeOv();say(msg||'',!!msg);setTimeout(function(){$('#pw').focus()},50)}
 $('#btnLock').onclick=function(){lock('')};
+$('#btnPrint').onclick=function(){printDialog({who:'',mineItems:ITEMS.filter(function(o){return !o.cond}),allItems:ITEMS,checks:{},mineLabel:'모든 회사 공통'})};
 setInterval(function(){if(ME&&document.hidden===false&&Date.now()-(window._act||Date.now())>60*60*1000)lock('1시간 동안 사용하지 않아 잠갔습니다.')},60000);
 document.addEventListener('pointerdown',function(){window._act=Date.now()});
 

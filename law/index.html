@@ -44,6 +44,7 @@
   <img class="lg" src="logo.png" alt="노무그룹지노">
   <h1>2026~2027 노동관계법령 개정 안내</h1>
   <span class="who">🔒 <b id="meName"></b> 전용</span>
+  <button class="tbtn" id="btnPrint">🖨 인쇄·PDF</button>
   <button class="tbtn" id="btnProf">회사 정보</button>
   <button class="tbtn" id="btnOut">로그아웃</button>
  </div></header>
@@ -95,6 +96,7 @@ function logout(msg){
   TOKEN='';mem.del(TKEY);mem.sdel(TKEY);$('#app').hidden=true;$('#login').hidden=false;$('#biz').value='';say(msg||'',!!msg);
 }
 $('#btnOut').onclick=function(){logout('')};
+$('#btnPrint').onclick=function(){printDialog({who:ME.name+' 전용',mineItems:mine(),allItems:ITEMS,checks:CHECKS,mineLabel:'우리 회사 해당'})};
 async function api(fn,args){
   try{return await rpcCall(fn,Object.assign({p_token:TOKEN},args||{}))}
   catch(e){if(e.code==='denied'){logout('로그인이 만료되었습니다. 다시 로그인해 주세요.')}throw e}

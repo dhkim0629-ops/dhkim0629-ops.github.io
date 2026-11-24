@@ -62,3 +62,45 @@ function tagsHtml(o){
   return (o.cond?'<span class="tag c">'+esc(o.cond)+' 해당</span>':'')+(o.rules?'<span class="tag r">취업규칙 개정</span>':'')+(o.ref?'<span class="tag">참고</span>':'');
 }
 function bulletList(t){var ls=String(t||'').split('\n').map(function(x){return x.replace(/^\s*[•·\-]\s*/,'').trim()}).filter(Boolean);return ls.length?'<ul class="bl">'+ls.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':''}
+
+/* ===== 인쇄·PDF (요약표 / 자세히) ===== */
+function printDialog(opt){
+  // opt: {who, mineItems, allItems, checks, mineLabel}
+  var old=document.getElementById('prDlg');if(old)old.remove();
+  var d=document.createElement('div');d.id='prDlg';d.className='prov';
+  var hasMine=opt.mineItems&&opt.mineItems.length!==opt.allItems.length;
+  d.innerHTML='<div class="prmd"><h3>🖨 인쇄 · PDF로 저장</h3>'+
+    '<div class="prq"><b>범위</b><div class="seg" data-k="scope">'+(hasMine?'<button class="on" data-v="mine">'+esc(opt.mineLabel||'우리 회사 해당')+' '+opt.mineItems.length+'건</button>':'')+'<button class="'+(hasMine?'':'on')+'" data-v="all">전체 '+opt.allItems.length+'건</button></div></div>'+
+    '<div class="prq"><b>형식</b><div class="seg" data-k="mode"><button class="on" data-v="sum">📋 요약표 <small>시행일·주요 내용·할 일, 1~3쪽</small></button><button data-v="det">📄 자세히 <small>개정 전·후, 유의사항까지</small></button></div></div>'+
+    '<p class="prnote">「인쇄」를 누른 뒤 인쇄 창에서 대상(프린터)을 <b>「PDF로 저장」</b>으로 고르면 PDF 파일이 됩니다.</p>'+
+    '<div class="pract"><button class="btn" data-x>취소</button><button class="btn pri" data-go>인쇄</button></div></div>';
+  document.body.appendChild(d);
+  var S={scope:hasMine?'mine':'all',mode:'sum'};
+  d.querySelectorAll('.seg').forEach(function(sg){sg.onclick=function(e){var b=e.target.closest('button');if(!b)return;S[sg.dataset.k]=b.dataset.v;sg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)})}});
+  d.addEventListener('mousedown',function(e){if(e.target===d)d.remove()});
+  d.querySelector('[data-x]').onclick=function(){d.remove()};
+  d.querySelector('[data-go]').onclick=function(){d.remove();printDoc(S.scope==='mine'?opt.mineItems:opt.allItems,S.mode,opt.who,opt.checks||{},S.scope==='mine'?(opt.mineLabel||'우리 회사 해당'):'전체')};
+}
+function printDoc(items,mode,who,checks,scopeLabel){
+  var root=document.getElementById('printroot');if(!root){root=document.createElement('div');root.id='printroot';document.body.appendChild(root)}
+  var stc={done:'#868e96',soon:'#d9480f',plan:'#1971c2',tbd:'#7048e8'};
+  var mark=function(o){var c=checks['item:'+o.no];return c==='done'?'✓ 완료':c==='na'?'해당없음':c==='ask'?'상담요청':'☐'};
+  var h='<div class="pcov"><img src="logo.png" alt=""><div><div class="pbr">NOMU GROUP JINO · 회원사 전용</div><h1>2026~2027 노동관계법령 개정 안내 '+(mode==='sum'?'(요약)':'(상세)')+'</h1>'+
+    '<div class="pmt">'+(who?esc(who)+' · ':'')+esc(scopeLabel)+' '+items.length+'건 · 출력일 '+fmt(TODAY)+' · 법령 조사 기준일 2026.10.27. (이후 변경은 월별 업데이트 참고)</div></div></div>';
+  if(mode==='sum'){
+    h+='<table class="ptb"><colgroup><col style="width:13%"><col style="width:17%"><col style="width:36%"><col style="width:26%"><col style="width:8%"></colgroup><thead><tr><th>시행일</th><th>법령</th><th>주요 내용</th><th>회사가 할 일</th><th>확인</th></tr></thead><tbody>'+
+      items.map(function(o){return '<tr><td class="c"><b>'+(o.dt?fmt(o.dt):'미정')+'</b><br><span class="pst" style="background:'+(stc[o.s]||'#1971c2')+'">'+esc(o.sl)+'</span></td><td>'+esc(o.law)+(o.cond?'<br><span class="pcd">'+esc(o.cond)+' 해당</span>':'')+(o.rules?'<br><span class="prl">취업규칙 개정</span>':'')+'</td><td>'+esc(o.summary)+'</td><td>'+esc(o.action)+'</td><td class="c">'+mark(o)+'</td></tr>'}).join('')+'</tbody></table>';
+  }else{
+    h+=items.map(function(o){return '<div class="pdc" style="border-left-color:'+(stc[o.s]||'#1971c2')+'"><div class="plw">'+(o.dt?fmt(o.dt):'미정')+' · '+esc(o.sl)+' · '+esc(o.law)+(o.cond?' · '+esc(o.cond)+' 해당':'')+(o.rules?' · 취업규칙 개정':'')+'<span class="pmk">'+mark(o)+'</span></div>'+
+      '<div class="psm">'+esc(o.summary)+'</div><div class="pac"><b>회사가 할 일</b> · '+esc(o.action)+'</div><div class="par">'+esc(o.article)+'</div>'+
+      '<div class="pg2"><div class="pbx pbef"><h5>개정 전</h5>'+esc(o.before)+'</div><div class="pbx paft"><h5>개정 후</h5>'+esc(o.after)+'</div></div>'+
+      '<div class="pg2"><div class="pbx ptip"><h5>실무상 유의사항</h5>'+esc(o.tips)+'</div><div class="pbx pfrm"><h5>관련 서식·자료</h5>'+esc(o.forms)+'</div></div></div>'}).join('');
+  }
+  h+='<div class="pft">노무그룹지노 · 용산센트럴파크타워 업무동 1003호 · jinolabor@kakao.com · www.jinolabor.com — 본 자료는 회원사 전용으로 제공되며 외부 배포를 삼가 주시기 바랍니다.</div>';
+  root.innerHTML=h;
+  document.body.classList.add('printing');
+  var done=function(){document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);
+  var im=root.querySelector('img');var go=function(){setTimeout(function(){window.print()},60)};
+  if(im&&!im.complete){im.onload=go;im.onerror=go}else go();
+}
