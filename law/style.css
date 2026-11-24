@@ -224,3 +224,15 @@ footer .ex{color:#c92a2a}
  #printroot .ptip{background:#fff4e6;border:1px solid #ffd8a8}#printroot .pfrm{border:1px solid #d5dbe5}
  #printroot .pft{margin-top:10px;font-size:7.5pt;color:#5b6577;border-top:1px solid #d5dbe5;padding-top:5px}
 }
+
+/* 관리 화면: PDF로 저장하기 */
+.pdfbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0 6px}
+.pdfh{font-weight:800;color:var(--navy);font-size:17px;margin-bottom:10px}
+.pdfh small{font-weight:400;font-size:13px;color:var(--sub);margin-left:6px}
+.pdfbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pdfb{text-align:left;border:2px solid var(--line);background:#f8fafd;border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--ink);font:inherit}
+.pdfb:hover{border-color:var(--navy);background:#eef3fb}
+.pdfb b{display:block;font-size:16px;color:var(--navy);margin-bottom:3px}
+.pdfb span{font-size:13px;color:var(--sub)}
+.pdfn{margin:10px 0 0;font-size:13px;color:var(--sub)}
+@media(max-width:640px){.pdfbtns{grid-template-columns:1fr}}
