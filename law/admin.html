@@ -113,7 +113,8 @@ $('#lform').onsubmit=async function(ev){
 };
 function lock(msg){TOKEN='';ME=null;AKEY=null;ADDR=[];$('#app').hidden=true;$('#login').hidden=false;closeOv();say(msg||'',!!msg);setTimeout(function(){$('#pw').focus()},50)}
 $('#btnLock').onclick=function(){lock('')};
-$('#btnPrint').onclick=function(){printDialog({who:'',mineItems:ITEMS.filter(function(o){return !o.cond}),allItems:ITEMS,checks:{},mineLabel:'모든 회사 공통'})};
+function adminPrint(mode){printDialog({who:'',mineItems:ITEMS.filter(function(o){return !o.cond}),allItems:ITEMS,checks:{},mineLabel:'모든 회사 공통',allFirst:true},mode)}
+$('#btnPrint').onclick=function(){adminPrint('sum')};
 setInterval(function(){if(ME&&document.hidden===false&&Date.now()-(window._act||Date.now())>60*60*1000)lock('1시간 동안 사용하지 않아 잠갔습니다.')},60000);
 document.addEventListener('pointerdown',function(){window._act=Date.now()});
 
@@ -160,14 +161,14 @@ function renderDash(){
   h+='<div class="pdfbox"><div class="pdfh">🖨 PDF로 저장하기 <small>개정사항 전체 '+ITEMS.length+'건 · 회원사 안내·상담용 자료</small></div><div class="pdfbtns">'+
     '<button class="pdfb" data-pdf="sum"><b>📋 요약본 PDF</b><span>시행일·주요내용·회사 조치사항을 표로 정리 (조치 확인 체크칸 포함)</span></button>'+
     '<button class="pdfb" data-pdf="det"><b>📄 상세본 PDF</b><span>개정 전·후 비교, 실무상 유의사항, 관련 서식까지 모두 포함</span></button></div>'+
-    '<p class="pdfn">버튼을 누르면 인쇄 창이 열립니다. 대상(프린터)을 <b>「PDF로 저장」</b>으로 고른 뒤 저장하세요.</p></div>';
+    '<p class="pdfn">버튼을 누르면 화면에서 먼저 <b>미리보기</b>가 열립니다. 확인 후 「인쇄 · PDF 저장」을 누르고 대상(프린터)을 <b>「PDF로 저장」</b>으로 고르세요.</p></div>';
   h+='<div class="h2">💬 상담 요청 <small>회원사가 「상담 요청」을 누른 항목입니다. 연락 후 회원사 쪽 표시는 그대로 두셔도 됩니다.</small></div>';
   h+=asks.length?'<div class="tw"><table><thead><tr><th>요청 일시</th><th>회원사</th><th>항목</th></tr></thead><tbody>'+asks.map(function(a){return '<tr class="asks"><td style="white-space:nowrap">'+ago(a.at)+'</td><td><b>'+esc(a.m.name)+'</b></td><td>'+esc(itemLabel(a.k))+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">아직 상담 요청이 없습니다.</div>';
   h+='<div class="h2">📈 회원사별 확인 현황 <small>해당 개정사항 중 「조치 완료·해당 없음」으로 표시한 비율</small></div>';
   h+=act.length?'<div class="tw"><table><thead><tr><th>회원사</th><th>회사 정보</th><th>확인 진행률</th><th>상담 요청</th><th>마지막 접속</th></tr></thead><tbody>'+act.map(function(m){var p=progress(m);var ak=Object.values(m.checks||{}).filter(function(c){return c.s==='ask'}).length;
       return '<tr class="click" data-mid="'+m.id+'"><td><b>'+esc(m.name)+'</b></td><td style="font-size:13px">'+esc(profileText(m.profile).join(' · '))+(m.profile_confirmed?'':' <span class="pill off">회사 미확인</span>')+'</td><td style="white-space:nowrap"><span class="pg"><i style="width:'+p.pct+'%"></i></span>'+p.d+'/'+p.n+'</td><td>'+(ak?'<span class="pill ask">'+ak+'건</span>':'-')+'</td><td style="white-space:nowrap">'+ago(m.last_login)+(m.login_count?' <span class="muted" style="font-size:12px">('+m.login_count+'회)</span>':'')+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">등록된 회원사가 없습니다. 「회원사 관리」에서 추가해 주세요.</div>';
   $('#v-dash').innerHTML=h;
-  $$('#v-dash [data-pdf]').forEach(function(b){b.onclick=function(){printDoc(ITEMS,b.dataset.pdf,'',{},'전체')}});
+  $$('#v-dash [data-pdf]').forEach(function(b){b.onclick=function(){adminPrint(b.dataset.pdf)}});
   $$('#v-dash [data-mid]').forEach(function(r){r.onclick=function(){memDetail(r.dataset.mid)}});
 }
 function memDetail(id){

@@ -64,25 +64,36 @@ function tagsHtml(o){
 function bulletList(t){var ls=String(t||'').split('\n').map(function(x){return x.replace(/^\s*[•·\-]\s*/,'').trim()}).filter(Boolean);return ls.length?'<ul class="bl">'+ls.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':''}
 
 /* ===== 인쇄·PDF (요약표 / 자세히) ===== */
-function printDialog(opt){
-  // opt: {who, mineItems, allItems, checks, mineLabel}
-  var old=document.getElementById('prDlg');if(old)old.remove();
-  var d=document.createElement('div');d.id='prDlg';d.className='prov';
+function printDialog(opt,mode){
+  // opt: {who, mineItems, allItems, checks, mineLabel} — 화면 미리보기 후 인쇄·PDF 저장
+  var old=document.getElementById('prPrev');if(old)old.remove();
   var hasMine=opt.mineItems&&opt.mineItems.length!==opt.allItems.length;
-  d.innerHTML='<div class="prmd"><h3>🖨 인쇄 · PDF로 저장</h3>'+
-    '<div class="prq"><b>범위</b><div class="seg" data-k="scope">'+(hasMine?'<button class="on" data-v="mine">'+esc(opt.mineLabel||'우리 회사 해당')+' '+opt.mineItems.length+'건</button>':'')+'<button class="'+(hasMine?'':'on')+'" data-v="all">전체 '+opt.allItems.length+'건</button></div></div>'+
-    '<div class="prq"><b>형식</b><div class="seg" data-k="mode"><button class="on" data-v="sum">📋 요약표 <small>시행일·주요 내용·할 일, 1~3쪽</small></button><button data-v="det">📄 자세히 <small>개정 전·후, 유의사항까지</small></button></div></div>'+
-    '<p class="prnote">「인쇄」를 누른 뒤 인쇄 창에서 대상(프린터)을 <b>「PDF로 저장」</b>으로 고르면 PDF 파일이 됩니다.</p>'+
-    '<div class="pract"><button class="btn" data-x>취소</button><button class="btn pri" data-go>인쇄</button></div></div>';
-  document.body.appendChild(d);
-  var S={scope:hasMine?'mine':'all',mode:'sum'};
-  d.querySelectorAll('.seg').forEach(function(sg){sg.onclick=function(e){var b=e.target.closest('button');if(!b)return;S[sg.dataset.k]=b.dataset.v;sg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)})}});
-  d.addEventListener('mousedown',function(e){if(e.target===d)d.remove()});
-  d.querySelector('[data-x]').onclick=function(){d.remove()};
-  d.querySelector('[data-go]').onclick=function(){d.remove();printDoc(S.scope==='mine'?opt.mineItems:opt.allItems,S.mode,opt.who,opt.checks||{},S.scope==='mine'?(opt.mineLabel||'우리 회사 해당'):'전체')};
+  var S={scope:hasMine&&!opt.allFirst?'mine':'all',mode:mode||'sum'};
+  var d=document.createElement('div');d.id='prPrev';d.className='ppv';
+  d.innerHTML='<div class="ppbar"><div class="ppin"><b class="ppt">🖨 미리보기</b>'+
+    (hasMine?'<div class="ppseg" data-k="scope"><button data-v="mine">'+esc(opt.mineLabel||'우리 회사 해당')+' '+opt.mineItems.length+'건</button><button data-v="all">전체 '+opt.allItems.length+'건</button></div>':'')+
+    '<div class="ppseg" data-k="mode"><button data-v="sum">📋 요약본</button><button data-v="det">📄 상세본</button></div>'+
+    '<span class="ppsp"></span><button class="btn pri" data-go>🖨 인쇄 · PDF 저장</button><button class="btn" data-x>닫기</button></div>'+
+    '<div class="ppnote">「인쇄 · PDF 저장」을 누르면 인쇄 창이 열립니다. 대상(프린터)을 <b>「PDF로 저장」</b>으로 고르면 PDF 파일이 됩니다.</div></div>'+
+    '<div class="ppscroll"><div class="ppaper pdoc"></div></div>';
+  document.body.appendChild(d);document.body.classList.add('ppopen');
+  var paper=d.querySelector('.ppaper');
+  var cur=function(){return S.scope==='mine'?opt.mineItems:opt.allItems};
+  var lab=function(){return S.scope==='mine'?(opt.mineLabel||'우리 회사 해당'):'전체'};
+  var draw=function(){
+    d.querySelectorAll('.ppseg').forEach(function(sg){sg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.v===S[sg.dataset.k])})});
+    paper.innerHTML=printHtml(cur(),S.mode,opt.who,opt.checks||{},lab());d.querySelector('.ppscroll').scrollTop=0};
+  d.querySelectorAll('.ppseg').forEach(function(sg){sg.onclick=function(e){var b=e.target.closest('button');if(!b)return;S[sg.dataset.k]=b.dataset.v;draw()}});
+  var close=function(){d.remove();document.body.classList.remove('ppopen');document.removeEventListener('keydown',esc_)};
+  var esc_=function(e){if(e.key==='Escape')close()};document.addEventListener('keydown',esc_);
+  d.querySelector('[data-x]').onclick=close;
+  d.querySelector('[data-go]').onclick=function(){printDoc(cur(),S.mode,opt.who,opt.checks||{},lab())};
+  var fit=function(){paper.style.zoom='';var w=d.querySelector('.ppscroll').clientWidth-24,pw=paper.offsetWidth;paper.style.zoom=pw>w?(w/pw).toFixed(3):''};
+  window.addEventListener('resize',fit);
+  var close0=close;close=function(){window.removeEventListener('resize',fit);close0()};d.querySelector('[data-x]').onclick=close;
+  draw();fit();
 }
-function printDoc(items,mode,who,checks,scopeLabel){
-  var root=document.getElementById('printroot');if(!root){root=document.createElement('div');root.id='printroot';document.body.appendChild(root)}
+function printHtml(items,mode,who,checks,scopeLabel){
   var stc={done:'#868e96',soon:'#d9480f',plan:'#1971c2',tbd:'#7048e8'};
   var mark=function(o){var c=checks['item:'+o.no];return c==='done'?'✓ 완료':c==='na'?'해당없음':c==='ask'?'상담요청':'☐'};
   var h='<div class="pcov"><img src="logo.png" alt=""><div><div class="pbr">NOMU GROUP JINO · 회원사 전용</div><h1>2026~2027 노동관계법령 개정 안내 '+(mode==='sum'?'(요약)':'(상세)')+'</h1>'+
@@ -96,8 +107,13 @@ function printDoc(items,mode,who,checks,scopeLabel){
       '<div class="pg2"><div class="pbx pbef"><h5>개정 전</h5>'+esc(o.before)+'</div><div class="pbx paft"><h5>개정 후</h5>'+esc(o.after)+'</div></div>'+
       '<div class="pg2"><div class="pbx ptip"><h5>실무상 유의사항</h5>'+esc(o.tips)+'</div><div class="pbx pfrm"><h5>관련 서식·자료</h5>'+esc(o.forms)+'</div></div></div>'}).join('');
   }
+  if(!items.length)h+='<p style="padding:30px;text-align:center;color:#5b6577">해당 항목이 없습니다.</p>';
   h+='<div class="pft">노무그룹지노 · 용산센트럴파크타워 업무동 1003호 · jinolabor@kakao.com · www.jinolabor.com — 본 자료는 회원사 전용으로 제공되며 외부 배포를 삼가 주시기 바랍니다.</div>';
-  root.innerHTML=h;
+  return h;
+}
+function printDoc(items,mode,who,checks,scopeLabel){
+  var root=document.getElementById('printroot');if(!root){root=document.createElement('div');root.id='printroot';document.body.appendChild(root)}
+  root.className='pdoc';root.innerHTML=printHtml(items,mode,who,checks,scopeLabel);
   document.body.classList.add('printing');
   var done=function(){document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
   window.addEventListener('afterprint',done);
